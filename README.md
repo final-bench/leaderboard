@@ -1,32 +1,3 @@
----
-language:
-  - en
-license: apache-2.0
-pretty_name: "FINAL Bench — Functional Metacognitive Reasoning Benchmark"
-size_categories:
-  - n<1K
-task_categories:
-  - text-generation
-  - question-answering
-tags:
-  - functional-metacognition
-  - self-correction
-  - reasoning
-  - benchmark
-  - error-recovery
-  - declarative-procedural-gap
-  - cognitive-bias
-  - TICOS
-  - AGI-evaluation
-  - LLM-evaluation
-  - metacognition
-configs:
-  - config_name: default
-    data_files:
-      - split: train
-        path: FINAL_Bench_100.jsonl
----
-
 # FINAL Bench: Functional Metacognitive Reasoning Benchmark
 
 > **"Not how much AI knows — but whether it knows what it doesn't know, and can fix it."**
@@ -331,7 +302,7 @@ Taebong Kim, Minsik Kim, Sunyoung Choi, Jaewon Jang
 
 *Under review at a leading international AI venue.*
 
-- [FINAL_Bench_paper.pdf](paper/FINAL_Bench_paper.pdf) — Full paper (under review)
+- [FINAL_Bench_paper.pdf](/FINAL_Bench_paper.pdf) — Full paper (under review)
 - DOI: [10.57967/hf/7873](https://doi.org/10.57967/hf/7873)
 
 ---
