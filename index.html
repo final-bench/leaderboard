@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FINAL Bench — Functional Metacognition Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:#1a2035;--bg-card-hover:#1f2847;--accent-blue:#3b82f6;--accent-cyan:#06b6d4;--accent-amber:#f59e0b;--accent-red:#ef4444;--accent-green:#10b981;--accent-purple:#8b5cf6;--accent-pink:#ec4899;--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e293b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg-primary);color:var(--text-primary);font-family:'DM Sans',sans-serif;line-height:1.6;min-height:100vh}
+.noise-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
+.glow-orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.glow-orb-1{width:500px;height:500px;background:rgba(59,130,246,0.08);top:-100px;right:-100px}
+.glow-orb-2{width:400px;height:400px;background:rgba(239,68,68,0.06);bottom:200px;left:-100px}
+.container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+header{padding:48px 0 32px;text-align:center;border-bottom:1px solid var(--border)}
+.badge{display:inline-block;padding:6px 16px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px;background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(6,182,212,0.15));border:1px solid rgba(59,130,246,0.3);color:var(--accent-cyan)}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:900;background:linear-gradient(135deg,#f1f5f9 0%,#94a3b8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;letter-spacing:-.5px}
+.subtitle{font-size:1.05rem;color:var(--text-secondary);max-width:700px;margin:0 auto 20px;font-style:italic}
+.header-stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;margin-top:24px}
+.header-stat-value{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;color:var(--accent-cyan)}
+.header-stat-label{font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.nav-badges{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:28px}
+.nav-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-size:.85rem;font-weight:700;text-decoration:none;transition:all .3s;letter-spacing:.3px}
+.nav-badge:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.3)}
+.nav-badge-icon{font-size:1.1rem}
+.nav-badge.dataset{background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(245,158,11,0.05));border:1px solid rgba(245,158,11,0.35);color:#fbbf24}
+.nav-badge.dataset:hover{background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(245,158,11,0.1));border-color:rgba(245,158,11,0.6)}
+.nav-badge.article{background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(139,92,246,0.05));border:1px solid rgba(139,92,246,0.35);color:#a78bfa}
+.nav-badge.article:hover{background:linear-gradient(135deg,rgba(139,92,246,0.25),rgba(139,92,246,0.1));border-color:rgba(139,92,246,0.6)}
+.nav-badge.leaderboard{background:linear-gradient(135deg,rgba(6,182,212,0.15),rgba(6,182,212,0.05));border:1px solid rgba(6,182,212,0.35);color:#22d3ee}
+.nav-badge.leaderboard:hover{background:linear-gradient(135deg,rgba(6,182,212,0.25),rgba(6,182,212,0.1));border-color:rgba(6,182,212,0.6)}
+.main-nav{display:flex;gap:0;background:var(--bg-secondary);border-bottom:2px solid var(--border);position:sticky;top:0;z-index:10}
+.main-nav-btn{padding:16px 28px;border:none;background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .2s;border-bottom:3px solid transparent;white-space:nowrap}
+.main-nav-btn:hover{color:var(--text-secondary);background:rgba(255,255,255,0.02)}
+.main-nav-btn.active{color:var(--accent-cyan);border-bottom-color:var(--accent-cyan);background:rgba(6,182,212,0.05)}
+.main-page{display:none}.main-page.active{display:block}
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;padding:40px 0}
+.finding-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+.finding-card:hover{transform:translateY(-4px);border-color:rgba(59,130,246,0.4)}
+.finding-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.finding-card:nth-child(1)::before{background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))}
+.finding-card:nth-child(2)::before{background:linear-gradient(90deg,var(--accent-red),var(--accent-amber))}
+.finding-card:nth-child(3)::before{background:linear-gradient(90deg,var(--accent-purple),var(--accent-blue))}
+.finding-number{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.finding-title{font-size:1.15rem;font-weight:700;margin-bottom:10px}
+.finding-metric{font-family:'JetBrains Mono',monospace;font-size:2.2rem;font-weight:700;margin-bottom:8px}
+.finding-card:nth-child(1) .finding-metric{color:var(--accent-cyan)}
+.finding-card:nth-child(2) .finding-metric{color:var(--accent-amber)}
+.finding-card:nth-child(3) .finding-metric{color:var(--accent-purple)}
+.finding-desc{font-size:.88rem;color:var(--text-secondary);line-height:1.6}
+.tab-nav{display:flex;gap:4px;background:var(--bg-secondary);padding:4px;border-radius:12px;margin-bottom:24px;overflow-x:auto}
+.tab-btn{padding:10px 20px;border:none;background:transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:var(--text-secondary)}
+.tab-btn.active{background:var(--bg-card);color:var(--text-primary);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.tab-content{display:none}.tab-content.active{display:block}
+.leaderboard-table{width:100%;border-collapse:separate;border-spacing:0 6px}
+.leaderboard-table thead th{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:color .2s}
+.leaderboard-table thead th:hover{color:var(--accent-cyan)}
+.leaderboard-table thead th.sort-active{color:var(--accent-cyan)}
+.leaderboard-table thead th.sort-active::after{content:' ▼';font-size:.6rem}
+.leaderboard-table thead th.sort-active.sort-asc::after{content:' ▲'}
+.leaderboard-table tbody tr{background:var(--bg-card);border-radius:10px;transition:background .2s,transform .2s}
+.leaderboard-table tbody tr:hover{background:var(--bg-card-hover);transform:scale(1.005)}
+.leaderboard-table td{padding:14px 16px;font-size:.92rem}
+.leaderboard-table td:first-child{border-radius:10px 0 0 10px}
+.leaderboard-table td:last-child{border-radius:0 10px 10px 0}
+.rank-cell{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.95rem;width:40px;text-align:center}
+.rank-1{color:#fbbf24}.rank-2{color:#d1d5db}.rank-3{color:#d97706}
+.model-name{font-weight:600}.model-provider{font-size:.75rem;color:var(--text-muted)}
+.score-cell{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.92rem}
+.score-bar-container{display:flex;align-items:center;gap:10px}
+.score-bar{flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;min-width:60px}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.gap-positive{color:var(--accent-red)}
+.delta-positive{color:var(--accent-green);font-family:'JetBrains Mono',monospace;font-weight:700}
+.mean-row{background:rgba(59,130,246,0.08)!important;border:1px solid rgba(59,130,246,0.2)}
+.mean-row td{font-weight:700;color:var(--accent-cyan)}
+.chart-container{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-top:24px}
+.chart-title{font-size:1rem;font-weight:700;margin-bottom:20px}
+.chart-wrapper{position:relative;height:360px}
+.gap-viz{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-top:24px}
+.gap-model{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;transition:border-color .3s}
+.gap-model:hover{border-color:rgba(239,68,68,0.4)}
+.gap-model-name{font-size:.72rem;font-weight:600;color:var(--text-secondary);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gap-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.gap-bar-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text-muted);width:20px}
+.gap-bar-track{flex:1;height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden}
+.gap-bar-fill-ma{height:100%;background:linear-gradient(90deg,var(--accent-amber),#fbbf24);border-radius:4px;transition:width 1s ease}
+.gap-bar-fill-er{height:100%;background:linear-gradient(90deg,var(--accent-red),#f87171);border-radius:4px;transition:width 1s ease}
+.gap-value{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--accent-red);margin-top:8px}
+.gap-label-text{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+.method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:24px}
+.method-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.method-card-title{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.method-card-body{font-size:.88rem;color:var(--text-secondary);line-height:1.7}
+.section-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:8px}
+.section-subtitle{font-size:.9rem;color:var(--text-secondary)}
+.about-hero{text-align:center;padding:60px 0 40px;background:linear-gradient(180deg,rgba(59,130,246,0.05) 0%,transparent 100%);border-radius:0 0 24px 24px;margin-bottom:40px}
+.about-hero h2{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;margin-bottom:16px;background:linear-gradient(135deg,#f1f5f9,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.about-hero p{font-size:1.05rem;color:var(--text-secondary);max-width:680px;margin:0 auto;line-height:1.8}
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+.problem-card{border-radius:16px;padding:32px;position:relative;overflow:hidden}
+.problem-card.old{background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.02));border:1px solid rgba(239,68,68,0.2)}
+.problem-card.new{background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(6,182,212,0.02));border:1px solid rgba(6,182,212,0.2)}
+.problem-card-badge{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:inline-block;padding:4px 12px;border-radius:6px}
+.problem-card.old .problem-card-badge{background:rgba(239,68,68,0.15);color:var(--accent-red)}
+.problem-card.new .problem-card-badge{background:rgba(6,182,212,0.15);color:var(--accent-cyan)}
+.problem-card h3{font-size:1.15rem;font-weight:700;margin-bottom:16px}
+.problem-card ul{list-style:none;padding:0}
+.problem-card li{padding:8px 0;font-size:.88rem;color:var(--text-secondary);border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:flex-start;gap:10px}
+.problem-card li::before{font-size:1rem;flex-shrink:0;margin-top:1px}
+.problem-card.old li::before{content:'✕';color:var(--accent-red)}
+.problem-card.new li::before{content:'✓';color:var(--accent-cyan)}
+.pipeline-flow{display:flex;align-items:stretch;gap:0;margin-top:32px;overflow-x:auto;padding-bottom:8px}
+.pipeline-step{flex:1;min-width:200px;padding:28px 20px;text-align:center;position:relative;background:var(--bg-card);border:1px solid var(--border)}
+.pipeline-step:first-child{border-radius:16px 0 0 16px}
+.pipeline-step:last-child{border-radius:0 16px 16px 0}
+.pipeline-step:not(:last-child)::after{content:'';position:absolute;right:-12px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:12px solid var(--bg-card);border-top:24px solid transparent;border-bottom:24px solid transparent;z-index:2}
+.pipeline-step-num{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.pipeline-step-icon{font-size:2rem;margin-bottom:12px}
+.pipeline-step-title{font-size:.95rem;font-weight:700;margin-bottom:8px}
+.pipeline-step-desc{font-size:.8rem;color:var(--text-secondary);line-height:1.5}
+.pipeline-step.highlight{background:rgba(6,182,212,0.08);border-color:rgba(6,182,212,0.3)}
+.rubric-row{display:flex;align-items:center;gap:16px;margin-bottom:14px;padding:16px 20px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border);transition:border-color .3s}
+.rubric-row:hover{border-color:rgba(255,255,255,0.1)}
+.rubric-label{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.82rem;min-width:36px;text-align:center}
+.rubric-name{font-size:.88rem;font-weight:600;min-width:180px}
+.rubric-bar-track{flex:1;height:28px;background:rgba(255,255,255,0.04);border-radius:8px;overflow:hidden;position:relative}
+.rubric-bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding-left:12px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;color:white;transition:width 1s ease}
+.rubric-weight{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;min-width:44px;text-align:right}
+.rubric-desc{font-size:.78rem;color:var(--text-muted);min-width:200px}
+.ticos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:28px}
+.ticos-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;align-items:flex-start;gap:14px;transition:border-color .3s,transform .2s}
+.ticos-card:hover{border-color:rgba(6,182,212,0.3);transform:translateY(-2px)}
+.ticos-code{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;padding:6px 10px;border-radius:8px;background:rgba(6,182,212,0.1);color:var(--accent-cyan);flex-shrink:0}
+.ticos-info h4{font-size:.88rem;font-weight:700;margin-bottom:4px}
+.ticos-info p{font-size:.78rem;color:var(--text-muted);line-height:1.5}
+.ticos-count{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-muted);margin-left:auto;flex-shrink:0}
+.evo-timeline{margin-top:28px;position:relative;padding-left:40px}
+.evo-timeline::before{content:'';position:absolute;left:15px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent-red),var(--accent-amber),var(--accent-green),var(--accent-blue),var(--accent-cyan))}
+.evo-item{position:relative;margin-bottom:20px;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px}
+.evo-item::before{content:'';position:absolute;left:-33px;top:24px;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg-primary)}
+.evo-item:nth-child(1)::before{background:var(--accent-red)}
+.evo-item:nth-child(2)::before{background:var(--accent-amber)}
+.evo-item:nth-child(3)::before{background:var(--accent-green)}
+.evo-item:nth-child(4)::before{background:var(--accent-blue)}
+.evo-item:nth-child(5)::before{background:var(--accent-cyan);box-shadow:0 0 12px rgba(6,182,212,0.5)}
+.evo-gen{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.evo-name{font-size:1rem;font-weight:700;margin-bottom:4px}
+.evo-desc{font-size:.82rem;color:var(--text-secondary)}
+.evo-item:last-child{border-color:rgba(6,182,212,0.3);background:rgba(6,182,212,0.04)}
+.safety-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px}
+.safety-card{border-radius:16px;padding:32px;position:relative;overflow:hidden}
+.safety-card.danger{background:linear-gradient(135deg,rgba(239,68,68,0.06),rgba(239,68,68,0.02));border:1px solid rgba(239,68,68,0.25)}
+.safety-card.safe{background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(16,185,129,0.02));border:1px solid rgba(16,185,129,0.25)}
+.safety-icon{font-size:2.5rem;margin-bottom:16px}
+.safety-title{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.safety-profile{font-family:'JetBrains Mono',monospace;font-size:.82rem;padding:8px 14px;border-radius:8px;display:inline-block;margin-bottom:12px}
+.safety-card.danger .safety-profile{background:rgba(239,68,68,0.12);color:var(--accent-red)}
+.safety-card.safe .safety-profile{background:rgba(16,185,129,0.12);color:var(--accent-green)}
+.safety-desc{font-size:.88rem;color:var(--text-secondary);line-height:1.7}
+footer{padding:40px 0;border-top:1px solid var(--border);text-align:center}
+.footer-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.footer-links a{color:var(--accent-cyan);text-decoration:none;font-size:.88rem;font-weight:600;transition:color .2s}
+.footer-links a:hover{color:var(--accent-blue)}
+.footer-copy{font-size:.78rem;color:var(--text-muted)}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeInUp .6s ease forwards;opacity:0}
+.animate-in:nth-child(1){animation-delay:.1s}.animate-in:nth-child(2){animation-delay:.2s}.animate-in:nth-child(3){animation-delay:.3s}
+@media(max-width:768px){.container{padding:0 16px}.problem-grid,.safety-grid{grid-template-columns:1fr}.pipeline-flow{flex-direction:column}.pipeline-step{border-radius:12px!important}.pipeline-step:not(:last-child)::after{display:none}.rubric-row{flex-wrap:wrap}.rubric-desc{min-width:100%;margin-top:4px}.gap-viz{grid-template-columns:repeat(3,1fr)}.main-nav{overflow-x:auto}
+#page-paper section>div[style*="display:flex"]{flex-direction:column}
+#page-paper div[style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr}
+#page-paper iframe{height:450px!important}
+#pdf-canvas-wrapper{max-height:500px!important}
+}
+</style>
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div class="glow-orb glow-orb-1"></div>
+<div class="glow-orb glow-orb-2"></div>
+<div class="container">
+
+<header>
+  <div class="badge">World's First Functional Metacognition Benchmark</div>
+  <h1>FINAL Bench Leaderboard</h1>
+  <p class="subtitle">"Not how much AI knows — but whether it knows what it doesn't know, and can fix it."</p>
+  <div class="header-stats">
+    <div class="header-stat"><div class="header-stat-value">100</div><div class="header-stat-label">Tasks</div></div>
+    <div class="header-stat"><div class="header-stat-value">9</div><div class="header-stat-label">Models</div></div>
+    <div class="header-stat"><div class="header-stat-value">15</div><div class="header-stat-label">Domains</div></div>
+    <div class="header-stat"><div class="header-stat-value">8</div><div class="header-stat-label">TICOS Types</div></div>
+    <div class="header-stat"><div class="header-stat-value">1,800</div><div class="header-stat-label">Evaluations</div></div>
+  </div>
+  <div class="nav-badges">
+    <a href="https://huggingface.co/datasets/FINAL-Bench/Metacognitive" target="_blank" class="nav-badge dataset"><span class="nav-badge-icon">&#x1F4BE;</span> Dataset</a>
+    <a href="https://huggingface.co/spaces/Heartsync/Prompt-Dump" target="_blank" class="nav-badge article"><span class="nav-badge-icon">&#x1F4DD;</span> Application</a>
+    <a href="https://huggingface.co/spaces/FINAL-Bench/Leaderboard" target="_blank" class="nav-badge leaderboard"><span class="nav-badge-icon">&#x1F3C6;</span> Leaderboard</a>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <button class="main-nav-btn active" onclick="switchPage('page-leaderboard',this)">Leaderboard</button>
+  <button class="main-nav-btn" onclick="switchPage('page-about',this)">About FINAL Bench</button>
+  <button class="main-nav-btn" onclick="switchPage('page-analysis',this)">Deep Analysis</button>
+  <button class="main-nav-btn" onclick="switchPage('page-safety',this)">AI Safety</button>
+  <button class="main-nav-btn" onclick="switchPage('page-paper',this)">Paper &amp; Figures</button>
+</nav>
+
+<!-- ===== LEADERBOARD ===== -->
+<div id="page-leaderboard" class="main-page active">
+<section class="findings">
+  <div class="finding-card animate-in"><div class="finding-number">Finding 01</div><div class="finding-title">ER Dominance</div><div class="finding-metric">94.8%</div><div class="finding-desc">of MetaCog gain comes from Error Recovery alone. Self-correction is the sole bottleneck to AGI.</div></div>
+  <div class="finding-card animate-in"><div class="finding-number">Finding 02</div><div class="finding-title">Declarative-Procedural Gap</div><div class="finding-metric">0.392</div><div class="finding-desc">mean MA-ER gap. They say "I might be wrong" (MA=0.694) but can't fix it (ER=0.302).</div></div>
+  <div class="finding-card animate-in"><div class="finding-number">Finding 03</div><div class="finding-title">Difficulty Effect</div><div class="finding-metric">r = -0.777</div><div class="finding-desc">Pearson correlation (p<0.001). Harder tasks yield dramatically larger self-correction gains.</div></div>
+</section>
+<section style="padding:20px 0 40px">
+  <div class="section-title">Model Leaderboard</div>
+  <p class="section-subtitle" style="margin-bottom:20px">Click column headers to sort.</p>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('baseline',this)">Baseline</button>
+    <button class="tab-btn" onclick="switchTab('metacog',this)">MetaCog</button>
+    <button class="tab-btn" onclick="switchTab('delta',this)">Delta MetaCog</button>
+  </div>
+  <div id="tab-baseline" class="tab-content active"><table class="leaderboard-table" id="table-baseline"><thead><tr><th onclick="sortTable('table-baseline',0,'num')">#</th><th onclick="sortTable('table-baseline',1,'str')">Model</th><th onclick="sortTable('table-baseline',2,'num')" class="sort-active">FINAL Score</th><th onclick="sortTable('table-baseline',3,'num')">PQ</th><th onclick="sortTable('table-baseline',4,'num')">MA</th><th onclick="sortTable('table-baseline',5,'num')">ER</th><th onclick="sortTable('table-baseline',6,'num')">ID</th><th onclick="sortTable('table-baseline',7,'num')">FC</th><th onclick="sortTable('table-baseline',8,'num')">MA-ER Gap</th></tr></thead><tbody></tbody></table></div>
+  <div id="tab-metacog" class="tab-content"><table class="leaderboard-table" id="table-metacog"><thead><tr><th onclick="sortTable('table-metacog',0,'num')">#</th><th onclick="sortTable('table-metacog',1,'str')">Model</th><th onclick="sortTable('table-metacog',2,'num')" class="sort-active">FINAL Score</th><th onclick="sortTable('table-metacog',3,'num')">PQ</th><th onclick="sortTable('table-metacog',4,'num')">MA</th><th onclick="sortTable('table-metacog',5,'num')">ER</th><th onclick="sortTable('table-metacog',6,'num')">ID</th><th onclick="sortTable('table-metacog',7,'num')">FC</th><th onclick="sortTable('table-metacog',8,'num')">MA-ER Gap</th></tr></thead><tbody></tbody></table></div>
+  <div id="tab-delta" class="tab-content"><table class="leaderboard-table" id="table-delta"><thead><tr><th onclick="sortTable('table-delta',0,'num')">#</th><th onclick="sortTable('table-delta',1,'str')">Model</th><th onclick="sortTable('table-delta',2,'num')">Baseline</th><th onclick="sortTable('table-delta',3,'num')">MetaCog</th><th onclick="sortTable('table-delta',4,'num')" class="sort-active">Delta</th><th onclick="sortTable('table-delta',5,'num')">Delta ER</th><th onclick="sortTable('table-delta',6,'num')">Delta MA</th><th onclick="sortTable('table-delta',7,'num')">Delta FC</th></tr></thead><tbody></tbody></table></div>
+</section>
+<section><div class="chart-container"><div class="chart-title">Baseline vs MetaCog — Score Comparison</div><div class="chart-wrapper"><canvas id="chartComparison"></canvas></div></div></section>
+<section style="padding:40px 0"><div class="section-title">Declarative-Procedural Gap</div><p class="section-subtitle">MA (say "I'm wrong") vs ER (actually fix it) — All 9 models at Baseline</p><div class="gap-viz" id="gapViz"></div></section>
+<section style="padding:0 0 40px;border-top:1px solid var(--border);padding-top:40px">
+  <div class="section-title">Methodology</div>
+  <div class="method-grid">
+    <div class="method-card"><div class="method-card-title">Evaluation Design</div><div class="method-card-body">100 expert-level tasks with hidden cognitive traps across 15 domains and 8 TICOS types. Baseline vs MetaCog conditions isolate causal effects.</div></div>
+    <div class="method-card"><div class="method-card-title">5-Axis Rubric</div><div class="method-card-body">PQ (15%) + MA (20%) + ER (25%) + ID (20%) + FC (20%). MA = declarative. ER = procedural metacognition.</div></div>
+    <div class="method-card"><div class="method-card-title">Tri-Model Judge</div><div class="method-card-body">GPT-5.2, Claude Opus 4.6, Gemini 3 Pro ensemble. Human validation: Cohen's kappa = 0.87.</div></div>
+    <div class="method-card"><div class="method-card-title">Theoretical Basis</div><div class="method-card-body">Nelson & Narens (1990) monitoring-control model. Dennett (1987) functional stance.</div></div>
+  </div>
+</section>
+</div>
+
+<!-- ===== ABOUT ===== -->
+<div id="page-about" class="main-page">
+<div class="about-hero"><h2>Why FINAL Bench Exists</h2><p>Every existing AI benchmark measures <strong>what models know</strong>. None measures <strong>whether they know what they don't know</strong>. This is the most dangerous blind spot in AI evaluation.</p></div>
+<section style="padding:0 0 48px"><div class="section-title">The Blind Spot in AI Evaluation</div><p class="section-subtitle">What existing benchmarks miss — and what FINAL Bench measures.</p>
+<div class="problem-grid">
+  <div class="problem-card old"><div class="problem-card-badge">Existing Benchmarks</div><h3>Measure final-answer accuracy only</h3><ul><li>Single correct answer (A/B/C/D or pass/fail)</li><li>No visibility into reasoning process</li><li>Cannot detect confident wrong answers</li><li>No measurement of self-awareness</li><li>No error detection or correction signal</li><li>Saturating rapidly (MMLU > 90%)</li></ul></div>
+  <div class="problem-card new"><div class="problem-card-badge">FINAL Bench</div><h3>Measures functional metacognition</h3><ul><li>5 independent axes per response</li><li>Full reasoning process evaluated</li><li>Separates "saying" from "fixing"</li><li>Quantifies self-awareness (MA axis)</li><li>Quantifies self-correction (ER axis)</li><li>Unsaturated — top model scores 68.71</li></ul></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">Five Generations of AI Benchmarks</div><p class="section-subtitle">Where FINAL Bench sits in the evolution of AI evaluation.</p>
+<div class="evo-timeline">
+  <div class="evo-item"><div class="evo-gen">Generation 1 — Knowledge</div><div class="evo-name">MMLU, ARC, HellaSwag</div><div class="evo-desc">Static multiple-choice. Tests what the model memorized.</div></div>
+  <div class="evo-item"><div class="evo-gen">Generation 2 — Execution</div><div class="evo-name">HumanEval, MBPP, SWE-bench</div><div class="evo-desc">Code generation. Tests what the model can do.</div></div>
+  <div class="evo-item"><div class="evo-gen">Generation 3 — Expert Reasoning</div><div class="evo-name">GPQA, MATH-500, MedQA</div><div class="evo-desc">PhD-level expertise. Tests how deeply the model reasons.</div></div>
+  <div class="evo-item"><div class="evo-gen">Generation 4 — Open-Ended Judgment</div><div class="evo-name">Arena, MT-Bench, AlpacaEval</div><div class="evo-desc">Human preference. Tests how well the model communicates.</div></div>
+  <div class="evo-item"><div class="evo-gen">Generation 5 — Metacognition</div><div class="evo-name">FINAL Bench</div><div class="evo-desc">Tests whether the model knows when it's wrong and can fix itself. The prerequisite for AGI.</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">How We Measure: Baseline vs MetaCog</div><p class="section-subtitle">Two conditions isolate the causal effect of structured self-correction.</p>
+<div class="pipeline-flow">
+  <div class="pipeline-step"><div class="pipeline-step-num">Condition A</div><div class="pipeline-step-icon">1</div><div class="pipeline-step-title">Baseline</div><div class="pipeline-step-desc">Single API call. No self-correction. The model's raw response.</div></div>
+  <div class="pipeline-step" style="min-width:60px;flex:0.3;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text-muted)">vs</div>
+  <div class="pipeline-step highlight"><div class="pipeline-step-num">Phase 1</div><div class="pipeline-step-icon">2</div><div class="pipeline-step-title">Initial Reasoning</div><div class="pipeline-step-desc">First response generated. Same prompt as Baseline.</div></div>
+  <div class="pipeline-step highlight"><div class="pipeline-step-num">Phase 2</div><div class="pipeline-step-icon">3</div><div class="pipeline-step-title">Critical Self-Review</div><div class="pipeline-step-desc">Structured prompt to identify errors, biases, and assumptions.</div></div>
+  <div class="pipeline-step highlight"><div class="pipeline-step-num">Phase 3</div><div class="pipeline-step-icon">4</div><div class="pipeline-step-title">Corrective Revision</div><div class="pipeline-step-desc">Revised answer integrating self-identified corrections. No external feedback.</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">Five-Axis Evaluation Rubric</div><p class="section-subtitle">Each response scored on 5 independent dimensions.</p>
+<div style="margin-top:28px">
+  <div class="rubric-row"><div class="rubric-label" style="color:var(--accent-blue)">PQ</div><div class="rubric-name">Process Quality</div><div class="rubric-bar-track"><div class="rubric-bar-fill" style="width:60%;background:linear-gradient(90deg,var(--accent-blue),rgba(59,130,246,0.6))">15%</div></div><div class="rubric-weight" style="color:var(--accent-blue)">15%</div><div class="rubric-desc">Structured reasoning chain</div></div>
+  <div class="rubric-row"><div class="rubric-label" style="color:var(--accent-amber)">MA</div><div class="rubric-name">Metacognitive Accuracy</div><div class="rubric-bar-track"><div class="rubric-bar-fill" style="width:80%;background:linear-gradient(90deg,var(--accent-amber),rgba(245,158,11,0.6))">20%</div></div><div class="rubric-weight" style="color:var(--accent-amber)">20%</div><div class="rubric-desc">Declarative — "I might be wrong"</div></div>
+  <div class="rubric-row"><div class="rubric-label" style="color:var(--accent-cyan)">ER</div><div class="rubric-name">Error Recovery</div><div class="rubric-bar-track"><div class="rubric-bar-fill" style="width:100%;background:linear-gradient(90deg,var(--accent-cyan),rgba(6,182,212,0.6))">25%</div></div><div class="rubric-weight" style="color:var(--accent-cyan)">25%</div><div class="rubric-desc">Procedural — detect & fix errors</div></div>
+  <div class="rubric-row"><div class="rubric-label" style="color:var(--accent-purple)">ID</div><div class="rubric-name">Integration Depth</div><div class="rubric-bar-track"><div class="rubric-bar-fill" style="width:80%;background:linear-gradient(90deg,var(--accent-purple),rgba(139,92,246,0.6))">20%</div></div><div class="rubric-weight" style="color:var(--accent-purple)">20%</div><div class="rubric-desc">Multi-perspective synthesis</div></div>
+  <div class="rubric-row"><div class="rubric-label" style="color:var(--accent-green)">FC</div><div class="rubric-name">Final Correctness</div><div class="rubric-bar-track"><div class="rubric-bar-fill" style="width:80%;background:linear-gradient(90deg,var(--accent-green),rgba(16,185,129,0.6))">20%</div></div><div class="rubric-weight" style="color:var(--accent-green)">20%</div><div class="rubric-desc">Factual accuracy</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">8 TICOS Metacognitive Types</div><p class="section-subtitle">Every task classified by its primary cognitive challenge.</p>
+<div class="ticos-grid">
+  <div class="ticos-card"><div class="ticos-code">A</div><div class="ticos-info"><h4>Trap Escape</h4><p>Recognize and escape a planted cognitive trap</p></div><div class="ticos-count">13</div></div>
+  <div class="ticos-card"><div class="ticos-code">B</div><div class="ticos-info"><h4>Contradiction Resolution</h4><p>Detect and resolve contradictions within premises</p></div><div class="ticos-count">7</div></div>
+  <div class="ticos-card"><div class="ticos-code">C</div><div class="ticos-info"><h4>Progressive Discovery</h4><p>Revise understanding as new evidence accumulates</p></div><div class="ticos-count">11</div></div>
+  <div class="ticos-card"><div class="ticos-code">D</div><div class="ticos-info"><h4>Multi-Constraint</h4><p>Balance multiple competing constraints</p></div><div class="ticos-count">10</div></div>
+  <div class="ticos-card"><div class="ticos-code">E</div><div class="ticos-info"><h4>Self-Correcting</h4><p>Identify and correct errors in own reasoning</p></div><div class="ticos-count">14</div></div>
+  <div class="ticos-card"><div class="ticos-code">F</div><div class="ticos-info"><h4>Expert Panel</h4><p>Adjudicate between conflicting expert views</p></div><div class="ticos-count">16</div></div>
+  <div class="ticos-card"><div class="ticos-code">G</div><div class="ticos-info"><h4>Pivot Detection</h4><p>Recognize when a fundamental assumption must change</p></div><div class="ticos-count">14</div></div>
+  <div class="ticos-card"><div class="ticos-code">H</div><div class="ticos-info"><h4>Decision Under Uncertainty</h4><p>Decide and justify with incomplete information</p></div><div class="ticos-count">15</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">Task Distribution</div><p class="section-subtitle">100 tasks across 15 domains and 3 difficulty grades.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px">
+  <div class="chart-container" style="margin-top:0"><div class="chart-title">Tasks per Domain</div><div class="chart-wrapper"><canvas id="chartDomain"></canvas></div></div>
+  <div class="chart-container" style="margin-top:0"><div class="chart-title">Grade Distribution</div><div class="chart-wrapper"><canvas id="chartGrade"></canvas></div></div>
+</div></section>
+</div>
+
+<!-- ===== DEEP ANALYSIS ===== -->
+<div id="page-analysis" class="main-page">
+<div class="about-hero"><h2>Deep Analysis</h2><p>Visual breakdown of three principal findings from 1,800 evaluations across 9 SOTA models.</p></div>
+<section style="padding:0 0 48px"><div class="section-title">Finding 1: ER Dominance</div><p class="section-subtitle" style="margin-bottom:24px">94.8% of improvement from Error Recovery alone.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+  <div class="chart-container" style="margin-top:0"><div class="chart-title">Five-Axis Contribution to MetaCog Gain</div><div class="chart-wrapper"><canvas id="chartContribution"></canvas></div></div>
+  <div class="chart-container" style="margin-top:0"><div class="chart-title">What This Means</div><div style="padding:20px 0"><div style="display:flex;align-items:center;gap:16px;margin-bottom:20px"><div style="font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:var(--accent-cyan);min-width:120px">94.8%</div><div style="font-size:.92rem;color:var(--text-secondary);line-height:1.7">Error Recovery is <strong style="color:var(--text-primary)">virtually the only axis that changes</strong> when self-correction is applied.</div></div><div style="background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.2);border-radius:12px;padding:20px;margin-top:16px"><div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent-cyan);font-weight:700;letter-spacing:1px;margin-bottom:8px">IMPLICATION</div><div style="font-size:.9rem;color:var(--text-secondary);line-height:1.7">The bottleneck to AGI is not knowledge or reasoning. It's about teaching models to <strong style="color:var(--text-primary)">detect and correct their own mistakes</strong>.</div></div></div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">Finding 2: Declarative-Procedural Gap</div><p class="section-subtitle" style="margin-bottom:24px">All 9 models can say "I might be wrong" — none can reliably fix it.</p>
+<div class="chart-container" style="margin-top:0"><div class="chart-title">MA vs ER — Baseline (All 9 Models)</div><div class="chart-wrapper"><canvas id="chartGapScatter"></canvas></div></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px">
+  <div class="method-card"><div class="method-card-title">MA (Declarative)</div><div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent-amber);margin:8px 0">0.694</div><div class="method-card-body">Models are good at verbalizing doubt.</div></div>
+  <div class="method-card"><div class="method-card-title">ER (Procedural)</div><div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent-red);margin:8px 0">0.302</div><div class="method-card-body">Models critically fail at actual correction.</div></div>
+  <div class="method-card"><div class="method-card-title">Gap</div><div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent-pink);margin:8px 0">0.392</div><div class="method-card-body">The chasm between saying and doing. A 15x differential.</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">Finding 3: Difficulty Effect</div><p class="section-subtitle" style="margin-bottom:24px">Harder problems benefit dramatically more from metacognition.</p>
+<div class="chart-container" style="margin-top:0"><div class="chart-title">Baseline Score vs MetaCog Gain (r = -0.777)</div><div class="chart-wrapper"><canvas id="chartDifficulty"></canvas></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px">
+  <div class="method-card"><div class="method-card-title">Lowest Baseline</div><div style="font-size:.95rem;font-weight:700;margin:8px 0">Claude Opus 4.6 — 56.04</div><div style="font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--accent-green);margin:4px 0">+20.13 gain</div><div class="method-card-body">Highest scaffold receptivity. Rank 9 to 5.</div></div>
+  <div class="method-card"><div class="method-card-title">Highest Baseline</div><div style="font-size:.95rem;font-weight:700;margin:8px 0">Kimi K2.5 — 68.71</div><div style="font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--accent-amber);margin:4px 0">+9.83 gain</div><div class="method-card-body">Already-high intrinsic ER (0.450). Less room.</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">MetaCog Gain by TICOS Type</div><p class="section-subtitle" style="margin-bottom:24px">100% win rate across all 8 metacognitive task types.</p>
+<div class="chart-container" style="margin-top:0"><div class="chart-title">Mean Delta by TICOS Type</div><div class="chart-wrapper"><canvas id="chartTicos"></canvas></div></div></section>
+</div>
+
+<!-- ===== AI SAFETY ===== -->
+<div id="page-safety" class="main-page">
+<div class="about-hero"><h2>AI Safety Implications</h2><p>The MA-ER Gap reveals a previously invisible risk: models that <strong>sound</strong> careful but <strong>fail</strong> to self-correct.</p></div>
+<section style="padding:0 0 48px"><div class="section-title">Two Safety Profiles</div><p class="section-subtitle">The MA-ER Gap is the first metric to distinguish these.</p>
+<div class="safety-grid">
+  <div class="safety-card danger"><div class="safety-icon">!</div><div class="safety-title">High MA, Low ER — "Humble Deceiver"</div><div class="safety-profile">MA = 0.75 ER = 0.30 Gap = 0.45</div><div class="safety-desc">Says "I'm not confident" — giving false reliability. Fails to correct. Users trust the humility. Errors propagate silently. <strong>All 9 SOTA models match this profile.</strong></div></div>
+  <div class="safety-card safe"><div class="safety-icon">O</div><div class="safety-title">High MA, High ER — "Reliable Self-Corrector"</div><div class="safety-profile">MA = 0.75 ER = 0.75 Gap = 0.00</div><div class="safety-desc">Says "I'm not confident" — and <strong>actually fixes the error</strong>. Self-correction aligns with self-awareness. Target for safe AGI. <strong>No model achieves this at Baseline.</strong></div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">Real-World Risk Scenarios</div><p class="section-subtitle" style="margin-bottom:24px">The MA-ER Gap has direct consequences in high-stakes domains.</p>
+<div class="method-grid">
+  <div class="method-card" style="border-left:3px solid var(--accent-red)"><div class="method-card-title">Medical Diagnosis</div><div class="method-card-body">AI says "this diagnosis has uncertainty" but presents the same incorrect recommendation. Patient receives wrong treatment.</div></div>
+  <div class="method-card" style="border-left:3px solid var(--accent-red)"><div class="method-card-title">Legal Analysis</div><div class="method-card-body">AI hedges with "interpretation may vary" but doesn't correct the flawed precedent. Brief contains incorrect case law.</div></div>
+  <div class="method-card" style="border-left:3px solid var(--accent-red)"><div class="method-card-title">Financial Modeling</div><div class="method-card-body">AI notes "projections carry uncertainty" but doesn't fix the unit error. Investment decision based on wrong data.</div></div>
+  <div class="method-card" style="border-left:3px solid var(--accent-red)"><div class="method-card-title">Autonomous Systems</div><div class="method-card-body">AI logs "sensor confidence: 72%" but doesn't adjust its plan. Wrong action executed in physical world.</div></div>
+</div></section>
+<section style="padding:0 0 48px"><div class="section-title">MA-ER Gap by Model — Risk Ranking</div><p class="section-subtitle" style="margin-bottom:24px">Higher gap = higher risk.</p>
+<div class="chart-container" style="margin-top:0"><div class="chart-title">MA-ER Gap at Baseline — Sorted by Risk</div><div class="chart-wrapper"><canvas id="chartSafetyGap"></canvas></div></div></section>
+</div>
+
+<!-- ===== PAPER & FIGURES ===== -->
+<div id="page-paper" class="main-page">
+<div class="about-hero">
+  <h2>Research Paper & Key Figures</h2>
+  <p>Visual evidence from 1,800 evaluations across 9 state-of-the-art models. Each figure illustrates a core finding of the FINAL Bench framework.</p>
+</div>
+
+<!-- Paper Download / Preview -->
+<section style="padding:0 0 48px">
+  <div style="background:linear-gradient(135deg,rgba(139,92,246,0.08),rgba(59,130,246,0.04));border:1px solid rgba(139,92,246,0.25);border-radius:20px;padding:40px;display:flex;align-items:center;gap:40px;flex-wrap:wrap">
+    <div style="flex:1;min-width:280px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-purple);margin-bottom:12px">📄 Official Paper</div>
+      <div style="font-size:1.4rem;font-weight:700;margin-bottom:8px;line-height:1.3">FINAL Bench: Measuring Functional Metacognitive Reasoning in Large Language Models</div>
+      <div style="font-size:.9rem;color:var(--text-secondary);margin-bottom:6px">Taebong Kim, Minsik Kim, Sunyoung Choi, Jaewon Jang</div>
+      <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:20px">VIDRAFT / Ginigen AI, Seoul — 12 pages, 5 figures, 7 tables</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="FINAL_Bench_Paper_v5_OFFICIAL.pdf" download class="nav-badge article" style="text-decoration:none;cursor:pointer"><span class="nav-badge-icon">⬇️</span> Download PDF</a>
+        <a href="FINAL_Bench_Paper_v5_OFFICIAL.pdf" target="_blank" class="nav-badge leaderboard" style="text-decoration:none;cursor:pointer"><span class="nav-badge-icon">👁️</span> Preview PDF</a>
+
+      </div>
+    </div>
+    <div style="flex:0 0 auto;text-align:center">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;min-width:140px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:2.4rem;font-weight:700;color:var(--accent-purple)">5</div>
+        <div style="font-size:.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Key Figures</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PDF Inline Preview -->
+<section style="padding:0 0 48px">
+  <div class="section-title">Paper Preview</div>
+  <p class="section-subtitle" style="margin-bottom:20px">Full 12-page paper rendered below. Use controls to navigate pages.</p>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <!-- PDF Viewer Controls -->
+    <div id="pdf-controls" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg-secondary);flex-wrap:wrap">
+      <button onclick="pdfPrevPage()" id="pdf-prev" style="padding:8px 18px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;transition:all .2s" onmouseover="this.style.borderColor='rgba(6,182,212,0.5)'" onmouseout="this.style.borderColor='var(--border)'">← Prev</button>
+      <span id="pdf-page-info" style="font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--text-secondary);min-width:100px;text-align:center">Loading...</span>
+      <button onclick="pdfNextPage()" id="pdf-next" style="padding:8px 18px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;transition:all .2s" onmouseover="this.style.borderColor='rgba(6,182,212,0.5)'" onmouseout="this.style.borderColor='var(--border)'">Next →</button>
+      <button onclick="pdfZoomOut()" style="padding:8px 14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);border-radius:8px;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='rgba(6,182,212,0.5)'" onmouseout="this.style.borderColor='var(--border)'">−</button>
+      <span id="pdf-zoom-info" style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--text-muted);min-width:50px;text-align:center">100%</span>
+      <button onclick="pdfZoomIn()" style="padding:8px 14px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-primary);border-radius:8px;cursor:pointer;font-size:1rem;transition:all .2s" onmouseover="this.style.borderColor='rgba(6,182,212,0.5)'" onmouseout="this.style.borderColor='var(--border)'">+</button>
+    </div>
+    <!-- PDF Canvas -->
+    <div id="pdf-canvas-wrapper" style="display:flex;justify-content:center;padding:20px;overflow:auto;background:#2a2a2a;max-height:800px">
+      <canvas id="pdf-canvas" style="box-shadow:0 4px 24px rgba(0,0,0,0.5);border-radius:4px"></canvas>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);text-align:center;font-size:.82rem;color:var(--text-muted)">If the viewer doesn't load, <a href="FINAL_Bench_Paper_v5_OFFICIAL.pdf" download style="color:var(--accent-cyan)">download the PDF directly</a> or <a href="FINAL_Bench_Paper_v5_OFFICIAL.pdf" target="_blank" style="color:var(--accent-cyan)">open in new tab</a>.</div>
+  </div>
+</section>
+
+<!-- FIGURE 1 -->
+<section style="padding:0 0 56px">
+  <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+    <div style="background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));color:white;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;padding:6px 14px;border-radius:8px;letter-spacing:1px;white-space:nowrap">FIG 1</div>
+    <div>
+      <div class="section-title" style="margin-bottom:4px">Multi-Model Results: Baseline + MetaCog Scores</div>
+      <p class="section-subtitle">9 Models × 30 Tasks — The complete performance landscape</p>
+    </div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <img src="fig1.png" alt="Fig 1: FINAL Bench Multi-Model Results" style="width:100%;display:block;border-radius:16px 16px 0 0">
+    <div style="padding:24px 28px;border-top:1px solid var(--border)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-cyan);margin-bottom:10px">Key Insight</div>
+      <div style="font-size:.92rem;color:var(--text-secondary);line-height:1.8">
+        <strong style="color:var(--text-primary)">Left panel:</strong> Kimi K2.5 leads with 78.5 FINAL Score, but the ranking shifts dramatically between Baseline and MetaCog conditions. Claude Opus 4.6, ranked last in Baseline (56.04), leaps to 5th place (76.17) under MetaCog — demonstrating the highest scaffold receptivity of any model.
+        <br><br>
+        <strong style="color:var(--text-primary)">Right panel:</strong> MetaCog gain (Δ_MC) is <em>inversely correlated</em> with Baseline performance. Claude Opus 4.6 gains <span style="color:var(--accent-green);font-family:'JetBrains Mono',monospace;font-weight:700">+20.1 points</span> while Kimi K2.5 gains only <span style="font-family:'JetBrains Mono',monospace;font-weight:700">+9.8</span>. This establishes that <strong style="color:var(--text-primary)">models with the most room for improvement benefit most from structured self-correction</strong>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FIGURE 2 -->
+<section style="padding:0 0 56px">
+  <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+    <div style="background:linear-gradient(135deg,var(--accent-red),var(--accent-amber));color:white;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;padding:6px 14px;border-radius:8px;letter-spacing:1px;white-space:nowrap">FIG 2</div>
+    <div>
+      <div class="section-title" style="margin-bottom:4px">Error Recovery Transformation — The MetaCog Effect</div>
+      <p class="section-subtitle">How self-correction scaffolding transforms the ER distribution</p>
+    </div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <img src="fig2.png" alt="Fig 2: Error Recovery Transformation" style="width:100%;display:block;border-radius:16px 16px 0 0">
+    <div style="padding:24px 28px;border-top:1px solid var(--border)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-red);margin-bottom:10px">The ER Floor Effect</div>
+      <div style="font-size:.92rem;color:var(--text-secondary);line-height:1.8">
+        <strong style="color:var(--text-primary)">Baseline (left, red):</strong> A catastrophic floor effect — <span style="color:var(--accent-red);font-family:'JetBrains Mono',monospace;font-weight:700">79.6%</span> of all evaluations score at the minimum (ER = 0.25). Mean = 0.302. Without self-correction scaffolding, models <em>almost never</em> detect and fix their own errors.
+        <br><br>
+        <strong style="color:var(--text-primary)">MetaCog (right, green):</strong> A dramatic shift — <span style="color:var(--accent-green);font-family:'JetBrains Mono',monospace;font-weight:700">98.1%</span> of evaluations now score ≥ 0.75. Mean jumps to 0.835. This is the single most striking visualization in the paper: <strong style="color:var(--text-primary)">the entire distribution migrates from floor to ceiling</strong>. Error Recovery is a latent capability that models possess but cannot activate without structured prompting.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FIGURE 3 -->
+<section style="padding:0 0 56px">
+  <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+    <div style="background:linear-gradient(135deg,var(--accent-purple),var(--accent-pink));color:white;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;padding:6px 14px;border-radius:8px;letter-spacing:1px;white-space:nowrap">FIG 3</div>
+    <div>
+      <div class="section-title" style="margin-bottom:4px">Declarative-Procedural Gap</div>
+      <p class="section-subtitle">Baseline (○) → MetaCog (□) transition for all 9 models</p>
+    </div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <img src="fig3.png" alt="Fig 3: Declarative-Procedural Gap" style="width:100%;display:block;border-radius:16px 16px 0 0">
+    <div style="padding:24px 28px;border-top:1px solid var(--border)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-purple);margin-bottom:10px">The "Can Describe, But Cannot Fix" Phenomenon</div>
+      <div style="font-size:.92rem;color:var(--text-secondary);line-height:1.8">
+        This scatter plot maps <strong style="color:var(--accent-amber)">Metacognitive Accuracy (MA, x-axis)</strong> against <strong style="color:var(--accent-red)">Error Recovery (ER, y-axis)</strong>. The dashed diagonal represents MA = ER (no gap).
+        <br><br>
+        <strong style="color:var(--text-primary)">Baseline circles (○):</strong> All 9 models cluster in the <span style="color:var(--accent-red);font-weight:700">pink "GAP ZONE"</span> — high MA but low ER. They can verbalize uncertainty ("I might be wrong") but fail to act on it. This is the <em>Declarative-Procedural Dissociation</em>, analogous to the monitoring-control gap documented in human cognitive psychology (Nelson & Narens, 1990).
+        <br><br>
+        <strong style="color:var(--text-primary)">MetaCog squares (□):</strong> After scaffolding, all 9 models migrate upward into the <span style="color:var(--accent-green);font-weight:700">green "ALIGNED ZONE"</span> where ER ≥ MA. The arrows show the transition — movement is <em>almost entirely vertical</em> (ER increases while MA barely changes), confirming the ER Dominance finding.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FIGURE 4 -->
+<section style="padding:0 0 56px">
+  <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+    <div style="background:linear-gradient(135deg,var(--accent-green),var(--accent-cyan));color:white;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;padding:6px 14px;border-radius:8px;letter-spacing:1px;white-space:nowrap">FIG 4</div>
+    <div>
+      <div class="section-title" style="margin-bottom:4px">Difficulty Effect — Harder Tasks Benefit More</div>
+      <p class="section-subtitle">Pearson r = −0.777, p &lt; 0.001 across 30 tasks</p>
+    </div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <img src="fig4.png" alt="Fig 4: Difficulty Effect" style="width:100%;display:block;border-radius:16px 16px 0 0">
+    <div style="padding:24px 28px;border-top:1px solid var(--border)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-green);margin-bottom:10px">Finding 3 — The Difficulty Effect</div>
+      <div style="font-size:.92rem;color:var(--text-secondary);line-height:1.8">
+        Each dot represents one of the 30 evaluated tasks. The x-axis shows the 9-model average Baseline score (lower = harder task), while the y-axis shows MetaCog gain (Δ_MC).
+        <br><br>
+        The strong negative correlation (<span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent-red)">r = −0.777, p < 0.001</span>) reveals a critical insight: <strong style="color:var(--text-primary)">the harder the task, the more metacognition helps</strong>. Tasks where models score ~54 at Baseline gain up to +23 points with self-correction, while tasks scoring ~68 gain only ~9 points. This implies that metacognitive scaffolding has the greatest impact precisely where it matters most — on frontier-difficulty problems where models are most likely to fail silently.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FIGURE 5 -->
+<section style="padding:0 0 56px">
+  <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+    <div style="background:linear-gradient(135deg,var(--accent-amber),var(--accent-red));color:white;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;padding:6px 14px;border-radius:8px;letter-spacing:1px;white-space:nowrap">FIG 5</div>
+    <div>
+      <div class="section-title" style="margin-bottom:4px">5-Axis Contribution to MetaCog Gain</div>
+      <p class="section-subtitle">ER Dominance at 94.8% — The single bottleneck to AGI-level reasoning</p>
+    </div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <img src="fig5.png" alt="Fig 5: 5-Axis Contribution" style="width:100%;display:block;border-radius:16px 16px 0 0">
+    <div style="padding:24px 28px;border-top:1px solid var(--border)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent-amber);margin-bottom:10px">Finding 1 — ER Dominance</div>
+      <div style="font-size:.92rem;color:var(--text-secondary);line-height:1.8">
+        This bar chart decomposes the total MetaCog gain (+14.05 points) into weighted contributions from each of the 5 rubric axes, averaged across all 9 models.
+        <br><br>
+        The result is unambiguous: <strong style="color:var(--accent-cyan)">Error Recovery (ER)</strong> contributes <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent-cyan)">+13.32 points (94.8%)</span> of the total improvement. Metacognitive Accuracy adds a modest +0.71 (5.1%), while Process Quality and Final Correctness contribute less than 1% each. Integration Depth actually <em>decreases</em> slightly (−0.20), consistent with the token competition hypothesis — self-correction tokens consume budget that would otherwise go to synthesis.
+        <br><br>
+        <strong style="color:var(--text-primary)">Bottom line:</strong> The path to AGI-level reasoning is not broader knowledge, deeper reasoning, or better expertise. It is teaching models to <strong style="color:var(--accent-cyan)">detect and correct their own errors</strong>. Everything else is already there.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Summary Card -->
+<section style="padding:0 0 48px">
+  <div style="background:linear-gradient(135deg,rgba(6,182,212,0.06),rgba(59,130,246,0.04));border:1px solid rgba(6,182,212,0.2);border-radius:20px;padding:40px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin-bottom:8px">Three Findings That Change How We Evaluate AI</div>
+      <div style="font-size:.9rem;color:var(--text-secondary)">From 100 tasks × 9 models × 2 conditions = 1,800 evaluations</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;color:var(--accent-cyan);letter-spacing:2px;margin-bottom:8px">FINDING 1</div>
+        <div style="font-size:1rem;font-weight:700;margin-bottom:8px">ER Dominance</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent-cyan);margin-bottom:8px">94.8%</div>
+        <div style="font-size:.82rem;color:var(--text-muted)">of all improvement comes from Error Recovery alone</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;color:var(--accent-amber);letter-spacing:2px;margin-bottom:8px">FINDING 2</div>
+        <div style="font-size:1rem;font-weight:700;margin-bottom:8px">Declarative-Procedural Gap</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent-amber);margin-bottom:8px">0.392</div>
+        <div style="font-size:.82rem;color:var(--text-muted)">MA–ER gap: models say "I'm wrong" but can't fix it</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;color:var(--accent-purple);letter-spacing:2px;margin-bottom:8px">FINDING 3</div>
+        <div style="font-size:1rem;font-weight:700;margin-bottom:8px">Difficulty Effect</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent-purple);margin-bottom:8px">r = −0.777</div>
+        <div style="font-size:.82rem;color:var(--text-muted)">Harder tasks benefit dramatically more from metacognition</div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="https://huggingface.co/datasets/FINAL-Bench/Metacognitive" target="_blank">Dataset</a>
+    <a href="https://huggingface.co/spaces/Heartsync/Prompt-Dump" target="_blank">Application</a>
+    <a href="https://huggingface.co/spaces/FINAL-Bench/Leaderboard" target="_blank">Leaderboard</a>
+    <a href="mailto:arxivgpt@gmail.com">Contact</a>
+  </div>
+  <div class="footer-copy">FINAL Bench v3.0 — Kim, Kim, Choi, Jang — VIDRAFT / Ginigen AI, Seoul</div>
+</footer>
+</div>
+
+<script>
+const models=[
+  {name:'Kimi K2.5',provider:'Moonshot AI',bl:{score:68.71,pq:.775,ma:.775,er:.450,id:.767,fc:.750},mc:{score:78.54,pq:.767,ma:.742,er:.908,id:.750,fc:.725}},
+  {name:'GPT-5.2',provider:'OpenAI',bl:{score:62.76,pq:.750,ma:.750,er:.336,id:.724,fc:.681},mc:{score:76.50,pq:.758,ma:.767,er:.792,id:.733,fc:.767}},
+  {name:'GLM-5',provider:'Zhipu AI',bl:{score:62.50,pq:.750,ma:.750,er:.284,id:.733,fc:.724},mc:{score:76.38,pq:.767,ma:.750,er:.808,id:.733,fc:.750}},
+  {name:'MiniMax-M1-2.5',provider:'MiniMax',bl:{score:60.54,pq:.742,ma:.733,er:.250,id:.725,fc:.700},mc:{score:74.04,pq:.750,ma:.742,er:.792,id:.725,fc:.683}},
+  {name:'GPT-OSS-120B',provider:'OpenAI',bl:{score:60.42,pq:.750,ma:.708,er:.267,id:.725,fc:.692},mc:{score:73.33,pq:.750,ma:.725,er:.817,id:.708,fc:.650}},
+  {name:'DeepSeek-V3.2',provider:'DeepSeek',bl:{score:60.04,pq:.750,ma:.700,er:.258,id:.683,fc:.733},mc:{score:73.08,pq:.733,ma:.733,er:.817,id:.658,fc:.692}},
+  {name:'GLM-4.7P',provider:'Zhipu AI',bl:{score:59.54,pq:.750,ma:.575,er:.292,id:.733,fc:.742},mc:{score:71.42,pq:.725,ma:.650,er:.842,id:.675,fc:.650}},
+  {name:'Gemini 3 Pro',provider:'Google',bl:{score:59.50,pq:.750,ma:.550,er:.317,id:.750,fc:.717},mc:{score:77.08,pq:.758,ma:.708,er:.875,id:.742,fc:.742}},
+  {name:'Claude Opus 4.6',provider:'Anthropic',bl:{score:56.04,pq:.692,ma:.708,er:.267,id:.725,fc:.517},mc:{score:76.17,pq:.767,ma:.750,er:.867,id:.750,fc:.650}},
+];
+const mean={bl:{score:61.12,pq:.745,ma:.694,er:.302,id:.729,fc:.695},mc:{score:75.17,pq:.753,ma:.730,er:.835,id:.719,fc:.701}};
+
+function switchPage(id,btn){document.querySelectorAll('.main-page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.main-nav-btn').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');window.scrollTo({top:0,behavior:'smooth'});if(id==='page-about'&&!window._ac){renderAboutCharts();window._ac=true;}if(id==='page-analysis'&&!window._anc){renderAnalysisCharts();window._anc=true;}if(id==='page-safety'&&!window._sc){renderSafetyCharts();window._sc=true;}if(id==='page-paper'&&!window._pc){initPdfViewer();window._pc=true;}}
+function switchTab(t,btn){btn.parentElement.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById('tab-'+t).classList.add('active');}
+function sortTable(tid,ci,type){const t=document.getElementById(tid);const tb=t.querySelector('tbody');const rows=Array.from(tb.querySelectorAll('tr:not(.mean-row)'));const mr=tb.querySelector('.mean-row');const th=t.querySelectorAll('thead th')[ci];const ath=t.querySelectorAll('thead th');const wa=th.classList.contains('sort-active');const ws=th.classList.contains('sort-asc');ath.forEach(x=>{x.classList.remove('sort-active','sort-asc');});th.classList.add('sort-active');const asc=wa&&!ws;if(asc)th.classList.add('sort-asc');rows.sort((a,b)=>{let va=a.cells[ci].textContent.trim();let vb=b.cells[ci].textContent.trim();if(type==='num'){va=parseFloat(va.replace('+',''))||0;vb=parseFloat(vb.replace('+',''))||0;return asc?va-vb:vb-va;}return asc?va.localeCompare(vb):vb.localeCompare(va);});rows.forEach(r=>tb.appendChild(r));if(mr)tb.appendChild(mr);}
+
+function renderBaseline(){const tb=document.querySelector('#table-baseline tbody');const s=[...models].sort((a,b)=>b.bl.score-a.bl.score);tb.innerHTML=s.map((m,i)=>{const g=(m.bl.ma-m.bl.er).toFixed(3);const r=i+1;const rc=r<=3?'rank-'+r:'';const w=(m.bl.score/80*100).toFixed(1);return '<tr><td class="rank-cell '+rc+'">'+r+'</td><td><div class="model-name">'+m.name+'</div><div class="model-provider">'+m.provider+'</div></td><td class="score-cell"><div class="score-bar-container"><span>'+m.bl.score.toFixed(2)+'</span><div class="score-bar"><div class="score-bar-fill" style="width:'+w+'%;background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan))"></div></div></div></td><td class="score-cell">'+m.bl.pq.toFixed(3)+'</td><td class="score-cell">'+m.bl.ma.toFixed(3)+'</td><td class="score-cell" style="color:var(--accent-red)">'+m.bl.er.toFixed(3)+'</td><td class="score-cell">'+m.bl.id.toFixed(3)+'</td><td class="score-cell">'+m.bl.fc.toFixed(3)+'</td><td class="score-cell gap-positive">'+g+'</td></tr>';}).join('')+'<tr class="mean-row"><td></td><td><div class="model-name">Mean</div></td><td class="score-cell">'+mean.bl.score.toFixed(2)+'</td><td class="score-cell">'+mean.bl.pq.toFixed(3)+'</td><td class="score-cell">'+mean.bl.ma.toFixed(3)+'</td><td class="score-cell">'+mean.bl.er.toFixed(3)+'</td><td class="score-cell">'+mean.bl.id.toFixed(3)+'</td><td class="score-cell">'+mean.bl.fc.toFixed(3)+'</td><td class="score-cell">'+(mean.bl.ma-mean.bl.er).toFixed(3)+'</td></tr>';}
+function renderMetacog(){const tb=document.querySelector('#table-metacog tbody');const s=[...models].sort((a,b)=>b.mc.score-a.mc.score);tb.innerHTML=s.map((m,i)=>{const g=(m.mc.ma-m.mc.er).toFixed(3);const r=i+1;const rc=r<=3?'rank-'+r:'';const w=(m.mc.score/85*100).toFixed(1);return '<tr><td class="rank-cell '+rc+'">'+r+'</td><td><div class="model-name">'+m.name+'</div><div class="model-provider">'+m.provider+'</div></td><td class="score-cell"><div class="score-bar-container"><span>'+m.mc.score.toFixed(2)+'</span><div class="score-bar"><div class="score-bar-fill" style="width:'+w+'%;background:linear-gradient(90deg,var(--accent-green),var(--accent-cyan))"></div></div></div></td><td class="score-cell">'+m.mc.pq.toFixed(3)+'</td><td class="score-cell">'+m.mc.ma.toFixed(3)+'</td><td class="score-cell" style="color:var(--accent-green)">'+m.mc.er.toFixed(3)+'</td><td class="score-cell">'+m.mc.id.toFixed(3)+'</td><td class="score-cell">'+m.mc.fc.toFixed(3)+'</td><td class="score-cell" style="color:var(--accent-green)">'+g+'</td></tr>';}).join('')+'<tr class="mean-row"><td></td><td><div class="model-name">Mean</div></td><td class="score-cell">'+mean.mc.score.toFixed(2)+'</td><td class="score-cell">'+mean.mc.pq.toFixed(3)+'</td><td class="score-cell">'+mean.mc.ma.toFixed(3)+'</td><td class="score-cell">'+mean.mc.er.toFixed(3)+'</td><td class="score-cell">'+mean.mc.id.toFixed(3)+'</td><td class="score-cell">'+mean.mc.fc.toFixed(3)+'</td><td class="score-cell">'+(mean.mc.ma-mean.mc.er).toFixed(3)+'</td></tr>';}
+function renderDelta(){const tb=document.querySelector('#table-delta tbody');const wd=models.map(m=>({...m,delta:m.mc.score-m.bl.score,dER:m.mc.er-m.bl.er,dMA:m.mc.ma-m.bl.ma,dFC:m.mc.fc-m.bl.fc})).sort((a,b)=>b.delta-a.delta);tb.innerHTML=wd.map((m,i)=>{const r=i+1;const rc=r<=3?'rank-'+r:'';return '<tr><td class="rank-cell '+rc+'">'+r+'</td><td><div class="model-name">'+m.name+'</div><div class="model-provider">'+m.provider+'</div></td><td class="score-cell">'+m.bl.score.toFixed(2)+'</td><td class="score-cell">'+m.mc.score.toFixed(2)+'</td><td class="delta-positive">+'+m.delta.toFixed(2)+'</td><td class="delta-positive">+'+m.dER.toFixed(3)+'</td><td class="score-cell">'+(m.dMA>=0?'+':'')+m.dMA.toFixed(3)+'</td><td class="score-cell" style="color:'+(m.dFC>=0?'var(--accent-green)':'var(--accent-red)')+'">'+(m.dFC>=0?'+':'')+m.dFC.toFixed(3)+'</td></tr>';}).join('')+'<tr class="mean-row"><td></td><td><div class="model-name">Mean</div></td><td class="score-cell">'+mean.bl.score.toFixed(2)+'</td><td class="score-cell">'+mean.mc.score.toFixed(2)+'</td><td class="score-cell">+'+(mean.mc.score-mean.bl.score).toFixed(2)+'</td><td class="score-cell">+'+(mean.mc.er-mean.bl.er).toFixed(3)+'</td><td class="score-cell">+'+(mean.mc.ma-mean.bl.ma).toFixed(3)+'</td><td class="score-cell">+'+(mean.mc.fc-mean.bl.fc).toFixed(3)+'</td></tr>';}
+function renderGapViz(){const c=document.getElementById('gapViz');const s=[...models].sort((a,b)=>(b.bl.ma-b.bl.er)-(a.bl.ma-a.bl.er));c.innerHTML=s.map(m=>{const g=(m.bl.ma-m.bl.er).toFixed(3);return '<div class="gap-model"><div class="gap-model-name">'+m.name+'</div><div class="gap-bar-row"><span class="gap-bar-label">MA</span><div class="gap-bar-track"><div class="gap-bar-fill-ma" style="width:'+m.bl.ma*100+'%"></div></div></div><div class="gap-bar-row"><span class="gap-bar-label">ER</span><div class="gap-bar-track"><div class="gap-bar-fill-er" style="width:'+m.bl.er*100+'%"></div></div></div><div class="gap-value">'+g+'</div><div class="gap-label-text">MA-ER Gap</div></div>';}).join('');}
+function renderLeaderboardChart(){const s=[...models].sort((a,b)=>b.mc.score-a.mc.score);new Chart(document.getElementById('chartComparison'),{type:'bar',data:{labels:s.map(m=>m.name),datasets:[{label:'Baseline',data:s.map(m=>m.bl.score),backgroundColor:'rgba(239,68,68,0.6)',borderColor:'rgba(239,68,68,0.9)',borderWidth:1,borderRadius:4},{label:'MetaCog',data:s.map(m=>m.mc.score),backgroundColor:'rgba(6,182,212,0.6)',borderColor:'rgba(6,182,212,0.9)',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{family:'DM Sans'}}}},scales:{x:{ticks:{color:'#64748b',font:{size:11}},grid:{color:'rgba(255,255,255,0.03)'}},y:{min:50,max:85,ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}}}});}
+
+function renderAboutCharts(){
+  const doms=['Medicine','Math','Ethics','War','Philosophy','Economics','Chemistry','Science','Art','Language','AI','History','Space','Religion','Literature'];const cnts=[11,9,9,8,7,7,7,6,6,6,6,6,6,3,3];
+  new Chart(document.getElementById('chartDomain'),{type:'bar',data:{labels:doms,datasets:[{data:cnts,backgroundColor:'rgba(6,182,212,0.6)',borderColor:'rgba(6,182,212,0.9)',borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}}}}});
+  new Chart(document.getElementById('chartGrade'),{type:'doughnut',data:{labels:['Grade A (50)','Grade B (33)','Grade C (17)'],datasets:[{data:[50,33,17],backgroundColor:['rgba(6,182,212,0.8)','rgba(245,158,11,0.8)','rgba(139,92,246,0.8)'],borderColor:'rgba(10,14,26,0.8)',borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{color:'#94a3b8',font:{family:'DM Sans',size:13},padding:20}}}}});}
+
+function renderAnalysisCharts(){
+  new Chart(document.getElementById('chartContribution'),{type:'doughnut',data:{labels:['Error Recovery (94.8%)','Metacognitive Accuracy (5.0%)','Other (0.2%)'],datasets:[{data:[94.8,5.0,0.2],backgroundColor:['rgba(6,182,212,0.85)','rgba(245,158,11,0.75)','rgba(100,116,139,0.4)'],borderColor:'rgba(10,14,26,0.8)',borderWidth:3,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{family:'DM Sans',size:13},padding:16}}}}});
+  new Chart(document.getElementById('chartGapScatter'),{type:'scatter',data:{datasets:[{label:'MA',data:models.map(m=>({x:m.name,y:m.bl.ma})),backgroundColor:'rgba(245,158,11,0.8)',pointRadius:8,pointHoverRadius:11},{label:'ER',data:models.map(m=>({x:m.name,y:m.bl.er})),backgroundColor:'rgba(239,68,68,0.8)',pointRadius:8,pointHoverRadius:11}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}}},scales:{x:{type:'category',labels:models.map(m=>m.name),ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},y:{min:0.1,max:0.9,ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+  const dd=models.map(m=>({x:m.bl.score,y:m.mc.score-m.bl.score}));new Chart(document.getElementById('chartDifficulty'),{type:'scatter',data:{datasets:[{label:'Models',data:dd,backgroundColor:['rgba(6,182,212,0.8)','rgba(59,130,246,0.8)','rgba(139,92,246,0.8)','rgba(245,158,11,0.8)','rgba(236,72,153,0.8)','rgba(16,185,129,0.8)','rgba(239,68,68,0.8)','rgba(251,191,36,0.8)','rgba(168,85,247,0.8)'],pointRadius:10,pointHoverRadius:14}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return models[c.dataIndex].name+': BL='+c.parsed.x.toFixed(1)+' Δ=+'+c.parsed.y.toFixed(1);}}}},scales:{x:{title:{display:true,text:'Baseline Score',color:'#94a3b8'},ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}},y:{title:{display:true,text:'MetaCog Gain',color:'#94a3b8'},ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+  const tl=['A:Trap','B:Contradict','C:Progressive','D:MultiConst','E:SelfCorr','F:ExpertPanel','G:Pivot','H:Uncertain'];const td=[13.8,15.2,14.1,13.5,14.8,13.2,14.5,14.9];new Chart(document.getElementById('chartTicos'),{type:'bar',data:{labels:tl,datasets:[{label:'Mean Δ',data:td,backgroundColor:['rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(16,185,129,0.7)','rgba(59,130,246,0.7)','rgba(6,182,212,0.7)','rgba(139,92,246,0.7)','rgba(236,72,153,0.7)','rgba(251,191,36,0.7)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{display:false}},y:{min:10,max:18,title:{display:true,text:'Mean Δ_MC',color:'#94a3b8'},ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}}}});}
+
+function renderSafetyCharts(){const s=[...models].sort((a,b)=>(b.bl.ma-b.bl.er)-(a.bl.ma-a.bl.er));new Chart(document.getElementById('chartSafetyGap'),{type:'bar',data:{labels:s.map(m=>m.name),datasets:[{label:'MA (Declarative)',data:s.map(m=>m.bl.ma),backgroundColor:'rgba(245,158,11,0.7)',borderRadius:4},{label:'ER (Procedural)',data:s.map(m=>m.bl.er),backgroundColor:'rgba(239,68,68,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8'}},tooltip:{callbacks:{afterBody:function(c){const i=c[0].dataIndex;return 'Gap: '+(s[i].bl.ma-s[i].bl.er).toFixed(3);}}}},scales:{x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{display:false}},y:{min:0,max:1,ticks:{color:'#64748b'},grid:{color:'rgba(255,255,255,0.05)'}}}}});}
+
+// ===== PDF.js Viewer =====
+let pdfDoc=null,pdfPageNum=1,pdfScale=1.5,pdfRendering=false,pdfPendingPage=null;
+function pdfRenderPage(num){
+  pdfRendering=true;
+  pdfDoc.getPage(num).then(function(page){
+    const viewport=page.getViewport({scale:pdfScale});
+    const canvas=document.getElementById('pdf-canvas');
+    const ctx=canvas.getContext('2d');
+    canvas.height=viewport.height;canvas.width=viewport.width;
+    page.render({canvasContext:ctx,viewport:viewport}).promise.then(function(){
+      pdfRendering=false;
+      if(pdfPendingPage!==null){pdfRenderPage(pdfPendingPage);pdfPendingPage=null;}
+    });
+  });
+  document.getElementById('pdf-page-info').textContent='Page '+num+' / '+pdfDoc.numPages;
+  document.getElementById('pdf-prev').disabled=(num<=1);
+  document.getElementById('pdf-next').disabled=(num>=pdfDoc.numPages);
+}
+function pdfQueuePage(num){if(pdfRendering){pdfPendingPage=num;}else{pdfRenderPage(num);}}
+function pdfPrevPage(){if(pdfPageNum<=1)return;pdfPageNum--;pdfQueuePage(pdfPageNum);}
+function pdfNextPage(){if(!pdfDoc||pdfPageNum>=pdfDoc.numPages)return;pdfPageNum++;pdfQueuePage(pdfPageNum);}
+function pdfZoomIn(){pdfScale=Math.min(pdfScale+0.25,3.0);document.getElementById('pdf-zoom-info').textContent=Math.round(pdfScale/1.5*100)+'%';if(pdfDoc)pdfQueuePage(pdfPageNum);}
+function pdfZoomOut(){pdfScale=Math.max(pdfScale-0.25,0.5);document.getElementById('pdf-zoom-info').textContent=Math.round(pdfScale/1.5*100)+'%';if(pdfDoc)pdfQueuePage(pdfPageNum);}
+function initPdfViewer(){
+  if(typeof pdfjsLib==='undefined'){
+    document.getElementById('pdf-page-info').textContent='PDF viewer unavailable';
+    return;
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.getDocument('FINAL_Bench_Paper_v5_OFFICIAL.pdf').promise.then(function(doc){
+    pdfDoc=doc;
+    document.getElementById('pdf-page-info').textContent='Page 1 / '+doc.numPages;
+    pdfRenderPage(1);
+  }).catch(function(err){
+    console.error('PDF load error:',err);
+    document.getElementById('pdf-page-info').textContent='Failed to load PDF';
+    document.getElementById('pdf-canvas-wrapper').innerHTML='<div style="padding:40px;text-align:center;color:var(--text-muted)"><div style="font-size:2rem;margin-bottom:12px">📄</div><div>PDF could not be loaded in this environment.</div><div style="margin-top:12px"><a href="FINAL_Bench_Paper_v5_OFFICIAL.pdf" download style="color:var(--accent-cyan);font-weight:600">Download PDF</a></div></div>';
+  });
+}
+
+// Initialize
+renderBaseline();renderMetacog();renderDelta();renderGapViz();renderLeaderboardChart();
+</script>
+</body>
+</html>
